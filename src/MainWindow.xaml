@@ -1,0 +1,132 @@
+﻿<Window x:Class="TaskListAppTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:controls="clr-namespace:TaskListAppTest.Controls"
+        xmlns:converters="clr-namespace:TaskListAppTest.Converters"
+        xmlns:vms="clr-namespace:TaskListAppTest.ViewModels"
+        mc:Ignorable="d"
+        Title="MainWindow" 
+        Height="675" Width="1020">
+    <Window.DataContext>
+        <vms:MainViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:BooleanInverseConverter x:Key="BoolInverse"/>
+
+        <CollectionViewSource x:Key="TaskSource" Source="{Binding TaskList}" 
+                              IsLiveSortingRequested="True">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="Progress" Direction="Descending" />
+            </CollectionViewSource.SortDescriptions>
+            <CollectionViewSource.LiveSortingProperties>
+                <sys:String>Progress</sys:String>
+            </CollectionViewSource.LiveSortingProperties>
+        </CollectionViewSource>
+        
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="FontSize" Value="25"/>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="350"/>
+            <ColumnDefinition Width="320" MinWidth="320"/>
+        </Grid.ColumnDefinitions>
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Rectangle Fill="#EDEDED" />
+        <Rectangle Fill="#494949" Grid.Column="1" Grid.RowSpan="2"/>       
+
+        <Label Content="СПИСОК ЗАДАЧ:" Margin="15" HorizontalAlignment="Left"/>
+        <Label Content="СОЗДАНИЕ ЗАДАЧИ:" Margin="15" Foreground="White" 
+               HorizontalAlignment="Left" Grid.Column="1"/>
+
+        <ListBox ItemsSource="{Binding Source={StaticResource TaskSource}}"
+                 Background="#EDEDED" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 HorizontalContentAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type vms:TaskViewModel}">
+                    <DockPanel Margin="3" Background="White">
+                        <DockPanel.Resources>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="FontSize" Value="25"/>
+                                <Setter Property="Foreground" Value="#808080"/>
+                            </Style>
+                        </DockPanel.Resources>
+                        
+                        <DockPanel DockPanel.Dock="Top" Margin="3" LastChildFill="False">
+                            <TextBlock Text="{Binding Name, Mode=OneTime}" Margin="1" FontSize="25" DockPanel.Dock="Left"/>
+                            
+                            <TextBlock Text="- Выполнена" Margin="5,1" DockPanel.Dock="Left" FontSize="25"
+                                       Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisibility}}"/>
+
+                            <Button DockPanel.Dock="Right" Style="{StaticResource CloseButton}"
+                                    Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisibility}}"
+                                    CommandParameter="{Binding DataContext, RelativeSource={RelativeSource Self}}"
+                                    Command="{Binding DataContext.RemoveTaskCommand, 
+                                              RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"/>
+                            
+                            <TextBlock Text="{Binding Progress, Mode=OneWay, StringFormat={}{0} %}" DockPanel.Dock="Right" Margin="20,0"/>
+                        </DockPanel>
+
+                        <ProgressBar Margin="3" Value="{Binding Progress, Mode=OneWay}" Height="5" Minimum="0" Maximum="100"/>
+                    </DockPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <DockPanel Margin="10" Grid.Column="1" Grid.Row="1" LastChildFill="False">
+            <StackPanel DockPanel.Dock="Top">
+                <Label Content="Название:" Margin="0,3" Foreground="#A4A4A4"/>
+                
+                <controls:ExtendedTextBox Text="{Binding NewTaskName, 
+                                                 UpdateSourceTrigger=PropertyChanged}"
+                                          FontSize="25" Height="70"
+                                          VerticalContentAlignment="Center"
+                                          PlaceHolder="название задачи"/>
+            </StackPanel>
+
+            <StackPanel DockPanel.Dock="Top">
+                <StackPanel.Resources>
+                    <converters:TimeSpanToDoubleConverter x:Key="SecondsToDouble" TimeUnit="Seconds"/>
+                </StackPanel.Resources>
+
+                <Label Content="Длительность:" Margin="0,3" Foreground="#A4A4A4" />
+                
+                <controls:ExtendedTextBox HorizontalContentAlignment="Right"
+                                          FontSize="25" Height="70"
+                                          VerticalContentAlignment="Center"
+                                          PlaceHolder="время в секундах"
+                                          x:Name="TimeInput">
+                    <controls:ExtendedTextBox.Text>
+                        <Binding Path="NewTaskTime" Mode="TwoWay"
+                                 Converter="{StaticResource SecondsToDouble}"
+                                 ConverterCulture="ru-RU"
+                                 UpdateSourceTrigger="PropertyChanged"
+                                 ConverterParameter="N0"/>
+                    </controls:ExtendedTextBox.Text>
+                </controls:ExtendedTextBox>
+            </StackPanel>
+
+            <Button Content="ДОБАВИТЬ" Command="{Binding AddTaskCommand}" 
+                    Style="{StaticResource CorneredButton}"
+                    IsEnabled="{Binding ElementName=TimeInput, 
+                                Path=(Validation.HasError), 
+                                Converter={StaticResource BoolInverse}}"
+                    DockPanel.Dock="Top" Margin="0,20" Height="70"
+                    FontSize="25" Background="#4C9624" Foreground="White"/>
+        </DockPanel>
+    </Grid>
+</Window>
