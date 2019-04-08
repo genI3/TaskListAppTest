@@ -9,6 +9,8 @@
                 <ResourceDictionary Source="Resources\ExtendedTextBox.xaml"/>
                 <ResourceDictionary Source="Resources\CloseButton.xaml"/>
                 <ResourceDictionary Source="Resources\CorneredButton.xaml"/>
+                <ResourceDictionary Source="Resources\CustomProgressBar.xaml"/>
+                <ResourceDictionary Source="Resources\CustomScrollBar.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

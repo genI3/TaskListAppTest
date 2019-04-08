@@ -85,7 +85,7 @@ namespace TaskListAppTest.ViewModels
 
         private void TimeToCheck(object sender, ElapsedEventArgs e)
         {
-            if(workerTimer.Enabled && TaskList.All(t => t.IsCompleted))
+            if(workerTimer.Enabled && (!TaskList.Any() || TaskList.All(t => t.IsCompleted)))
             {
                 workerTimer.Stop();
             }
