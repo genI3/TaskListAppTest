@@ -67,6 +67,7 @@ namespace TaskListAppTest.ViewModels
 
 
         private readonly TaskModel model;
+        private readonly Timer refreshTimer;
         private int progress;
 
         /// <summary>
@@ -89,11 +90,20 @@ namespace TaskListAppTest.ViewModels
 
             model = new TaskModel(name, time);
 
-            timer.Elapsed += TimeToUpdate;
+            refreshTimer = timer;
+            refreshTimer.Elapsed += TimeToUpdate;
         }
 
 
-        private void TimeToUpdate(object sender, ElapsedEventArgs e) => Progress = (int)(GetPercentageProgress() * 100);
+        private void TimeToUpdate(object sender, ElapsedEventArgs e) 
+        {
+            Progress = (int)(GetPercentageProgress() * 100);
+            
+            if(IsCompleted)
+            {
+                refreshTimer.Elapsed -= TimeToUpdate;
+            }
+        }
 
         private double GetPercentageProgress()
         {
